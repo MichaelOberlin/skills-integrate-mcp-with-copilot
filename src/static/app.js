@@ -14,12 +14,19 @@ document.addEventListener("DOMContentLoaded", () => {
       activitiesList.innerHTML = "";
 
       // Populate activities list
+
       Object.entries(activities).forEach(([name, details]) => {
         const activityCard = document.createElement("div");
         activityCard.className = "activity-card";
 
-        const spotsLeft =
-          details.max_participants - details.participants.length;
+        const spotsLeft = details.max_participants - details.participants.length;
+
+        // Galerie fictive (mock)
+        const galleryImages = [
+          `https://placehold.co/300x200?text=${encodeURIComponent(name)}+1`,
+          `https://placehold.co/300x200?text=${encodeURIComponent(name)}+2`,
+          `https://placehold.co/300x200?text=${encodeURIComponent(name)}+3`
+        ];
 
         // Create participants HTML with delete icons instead of bullet points
         const participantsHTML =
@@ -42,6 +49,7 @@ document.addEventListener("DOMContentLoaded", () => {
           <p>${details.description}</p>
           <p><strong>Schedule:</strong> ${details.schedule}</p>
           <p><strong>Availability:</strong> ${spotsLeft} spots left</p>
+          <button class="gallery-btn" data-activity="${name}">Voir la galerie</button>
           <div class="participants-container">
             ${participantsHTML}
           </div>
@@ -54,7 +62,45 @@ document.addEventListener("DOMContentLoaded", () => {
         option.value = name;
         option.textContent = name;
         activitySelect.appendChild(option);
+
+        // Stocker les images dans l'élément pour usage ultérieur
+        activityCard.dataset.galleryImages = JSON.stringify(galleryImages);
       });
+
+      // Add event listeners to delete buttons
+      document.querySelectorAll(".delete-btn").forEach((button) => {
+        button.addEventListener("click", handleUnregister);
+      });
+
+      // Add event listeners to gallery buttons
+      document.querySelectorAll(".gallery-btn").forEach((button) => {
+        button.addEventListener("click", (event) => {
+          const activity = event.target.getAttribute("data-activity");
+          const card = Array.from(document.querySelectorAll(".activity-card")).find(
+            (el) => el.querySelector(".gallery-btn").getAttribute("data-activity") === activity
+          );
+          const images = JSON.parse(card.dataset.galleryImages);
+          showGallery(activity, images);
+        });
+      });
+  // Galerie modal logic
+  const galleryModal = document.getElementById("gallery-modal");
+  const galleryTitle = document.getElementById("gallery-title");
+  const galleryImagesDiv = document.getElementById("gallery-images");
+  const closeGalleryBtn = document.getElementById("close-gallery");
+
+  function showGallery(activityName, images) {
+    galleryTitle.textContent = `Galerie : ${activityName}`;
+    galleryImagesDiv.innerHTML = images
+      .map((src) => `<img src="${src}" alt="${activityName}" class="gallery-img" />`)
+      .join("");
+    galleryModal.classList.remove("hidden");
+  }
+
+  closeGalleryBtn.addEventListener("click", () => {
+    galleryModal.classList.add("hidden");
+    galleryImagesDiv.innerHTML = "";
+  });
 
       // Add event listeners to delete buttons
       document.querySelectorAll(".delete-btn").forEach((button) => {
